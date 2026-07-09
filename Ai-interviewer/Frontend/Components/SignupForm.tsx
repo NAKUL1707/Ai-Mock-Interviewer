@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import { registerUser } from "../src/Services/api";
 
 interface FormData {
   fullName: string;
@@ -58,22 +59,22 @@ export default function SignupForm({ onSuccess, onError }: SignupFormProps) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) {
-      setErrors(errs);
-      onError?.("Please fix the highlighted fields and try again.");
+
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
     setLoading(true);
     try {
-      // ↳ Replace this with your real API call / auth logic
-      await new Promise((r) => setTimeout(r, 1200));
+      await registerUser(formData.email, formData.password, formData.fullName);
       onSuccess?.(formData);
-    } catch {
-      onError?.("Something went wrong while creating your account.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong while creating your account.";
+      onError?.(message);
     } finally {
       setLoading(false);
     }

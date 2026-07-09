@@ -1,5 +1,6 @@
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
+import { loginUser } from "../src/Services/api";
 
 interface FormData {
   email: string;
@@ -45,12 +46,12 @@ export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) {
-      setErrors(errs);
-      setSubmitError("");
+
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -58,19 +59,12 @@ export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
     setSubmitError("");
 
     try {
-      // Replace this mock check with a real authentication API call later.
-      await new Promise((r) => setTimeout(r, 1200));
-      const isValidLogin =
-        formData.email.trim().toLowerCase() === "admin@example.com" &&
-        formData.password === "12345678";
-
-      if (isValidLogin) {
-        onSuccess?.(formData);
-      } else {
-        const message = "Invalid email or password. Please try again.";
-        setSubmitError(message);
-        onError?.(message);
-      }
+      await loginUser(formData.email, formData.password);
+      onSuccess?.(formData);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Login failed. Please try again.";
+      setSubmitError(message);
+      onError?.(message);
     } finally {
       setLoading(false);
     }

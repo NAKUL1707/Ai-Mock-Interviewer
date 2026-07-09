@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { scoreFeedback } from "../src/Services/api";
 
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Question {
@@ -92,55 +92,6 @@ const UserIcon = () => (
   </svg>
 );
 
-// ── Groq scoring API call ──────────────────────────────────────────────────
-async function scorAnswers(
-  questions: Question[],
-  answers: string[],
-  config: SessionConfig
-): Promise<QuestionFeedback[]> {
-  const pairs = questions.map((q, i) => ({
-    question: q.question,
-    answer: answers[i] || "(skipped)",
-  }));
-
-  const prompt = `You are an expert interview coach. Score each answer for a ${config.difficulty} level ${config.role} interview.
-
-Questions and answers:
-${JSON.stringify(pairs, null, 2)}
-
-Return ONLY a valid JSON array with exactly ${questions.length} items. Each item must have:
-- "score": number from 0 to 10 (one decimal allowed, e.g. 7.5)
-- "improvement": one specific coaching tip (max 15 words)
-
-Example: [{"score":8.5,"improvement":"Use the STAR method more strictly when describing the Result phase."}]`;
-
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 1000,
-      temperature: 0.3,
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert interview coach. Always respond with valid JSON only. No markdown, no explanation.",
-        },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
-
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content ?? "[]";
-  const clean = text.replace(/```json|```/g, "").trim();
-  return JSON.parse(clean) as QuestionFeedback[];
-}
-
 // ── Navbar ─────────────────────────────────────────────────────────────────
 function Navbar({ activeTab }: { activeTab: string }) {
   const navigate = useNavigate();
@@ -187,22 +138,50 @@ export default function FeedbackPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { config, questions, answers } = (location.state as {
+  const { config, questions, answers, sessionId } = (location.state as {
     config: SessionConfig;
     questions: Question[];
     answers: string[];
-  }) ?? { config: null, questions: [], answers: [] };
+    sessionId?: string | null;
+  }) ?? {
+    config: { role: "", focus: "", difficulty: "" },
+    questions: [],
+    answers: [],
+    sessionId: null,
+  };
 
   const [feedbacks, setFeedbacks] = useState<QuestionFeedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!questions.length) { setLoading(false); return; }
-    scorAnswers(questions, answers, config)
-      .then((fb) => { setFeedbacks(fb); setLoading(false); })
-      .catch((err) => { setError(err.message); setLoading(false); });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!questions.length) {
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const run = async () => {
+      try {
+        const fb = await scoreFeedback(questions, answers, config, sessionId ?? undefined);
+        if (isMounted) {
+          setFeedbacks(fb as QuestionFeedback[]);
+          setLoading(false);
+        }
+      } catch (err: unknown) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : "Failed to load feedback.");
+          setLoading(false);
+        }
+      }
+    };
+
+    void run();
+    return () => {
+      isMounted = false;
+    };
+  }, [answers, config, questions, sessionId]);
 
   // ── Derived stats ──────────────────────────────────────────────────────
   const answered = answers.filter(a => a.trim() !== "").length;

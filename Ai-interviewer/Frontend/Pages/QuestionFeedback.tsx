@@ -11,8 +11,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+import { getDetailedFeedback  } from "../src/Services/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Question {
@@ -134,51 +133,6 @@ const UserIcon = () => (
     <circle cx="12" cy="7" r="4"/>
   </svg>
 );
-
-// ── Groq detailed feedback ─────────────────────────────────────────────────
-async function fetchDetailedFeedback(
-  question: Question,
-  answer: string,
-  config: SessionConfig
-): Promise<DetailedFeedback> {
-  const prompt = `You are an expert interview coach. Analyze this ${config.difficulty} ${config.role} interview answer.
-
-Question: "${question.question}"
-Answer: "${answer || "(no answer provided)"}"
-
-Return ONLY valid JSON with exactly these fields:
-{
-  "score": <number 0-10, one decimal>,
-  "label": <"STRONG" if score>=8, "GOOD" if score>=6, "NEEDS WORK" if below 6>,
-  "topic": <3-6 word topic label for this question>,
-  "whatWorked": [<2-3 specific things done well, each max 20 words>],
-  "improveThis": [<1-2 specific improvements, each max 20 words>],
-  "idealAnswer": <one paragraph model answer, 80-120 words, in first person>
-}`;
-
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 1000,
-      temperature: 0.3,
-      messages: [
-        { role: "system", content: "You are an expert interview coach. Always respond with valid JSON only. No markdown." },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
-
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content ?? "{}";
-  const clean = text.replace(/```json|```/g, "").trim();
-  return JSON.parse(clean) as DetailedFeedback;
-}
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
 function Sidebar({ activePage }: { activePage: string }) {
@@ -359,13 +313,35 @@ export default function QuestionFeedback() {
   const total = questions.length;
 
   useEffect(() => {
-    if (!currentQ) return;
+    if (!currentQ || !config) {
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
     setLoading(true);
     setFeedback(null);
-    fetchDetailedFeedback(currentQ, currentA, config)
-      .then((fb) => { setFeedback(fb); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const loadFeedback = async () => {
+      try {
+        const fb = await getDetailedFeedback(currentQ, currentA, config);
+        if (isMounted) {
+          setFeedback(fb as DetailedFeedback);
+          setLoading(false);
+        }
+      } catch {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadFeedback();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentA, currentQ, config]);
 
   const handleNext = () => {
     if (currentIndex < total - 1) {

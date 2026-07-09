@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+}
+
+model Session {
+  id         String     @id @default(uuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
+  role       String
+  focus      String
+  difficulty String
+  avgScore   Float?
+  createdAt  DateTime   @default(now())
+  questions  Question[]
+}
+
+model Question {
+  id         String    @id @default(uuid())
+  sessionId  String
+  session    Session   @relation(fields: [sessionId], references: [id])
+  question   String
+  hint       String
+  type       String
+  userAnswer String?
+  feedback   Feedback?
+}
+
+model Feedback {
+  id          String   @id @default(uuid())
+  questionId  String   @unique
+  question    Question @relation(fields: [questionId], references: [id])
+  score       Float
+  improvement String
+  idealAnswer String
+}

@@ -4,8 +4,7 @@
 import VoiceVisualizer from "../Components/VoiceVisualizer"; // ✅ default import (no curly braces)
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+import { generateQuestions, createSession } from "../src/Services/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Question {
@@ -110,60 +109,6 @@ const LightbulbIcon = () => (
   </svg>
 );
 
-// ── Groq API call ──────────────────────────────────────────────────────────
-async function fetchQuestions(config: SessionConfig): Promise<Question[]> {
-  const focusLabel =
-    config.focus === "both"        ? "both Technical and HR"
-    : config.focus === "technical" ? "Technical only"
-    : config.focus === "hr"        ? "HR / behavioral only"
-    : "5 quick-fire mixed";
-
-  const count = config.focus === "quick" ? 5 : 8;
-
-  const prompt = `You are an expert interview coach. Generate exactly ${count} interview questions for a ${config.difficulty} level ${config.role} candidate. Focus: ${focusLabel}.
-
-Return ONLY a valid JSON array, no markdown, no explanation. Each item must have exactly these fields:
-- "question": the interview question (string)
-- "hint": a short coaching tip (string)
-- "type": either "TECHNICAL" or "HR" (string)
-
-Example:
-[{"question":"...","hint":"...","type":"TECHNICAL"},{"question":"...","hint":"...","type":"HR"}]`;
-
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 1000,
-      temperature: 0.7,
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert interview coach. Always respond with valid JSON only. No markdown, no explanation.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status} - ${await response.text()}`);
-  }
-
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content ?? "[]";
-  const clean = text.replace(/```json|```/g, "").trim();
-  const parsed: Question[] = JSON.parse(clean);
-  return parsed;
-}
-
 // ── Main Component ─────────────────────────────────────────────────────────
 export default function InterviewSession() {
   const location = useLocation();
@@ -183,15 +128,29 @@ export default function InterviewSession() {
   const [answer, setAnswer]             = useState("");
   const [answers, setAnswers]           = useState<string[]>([]);
   const [isListening, setIsListening]   = useState(false);
+  const [sessionId, setSessionId]       = useState<string | null>(null);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // ── Fetch questions on mount ───────────────────────────────────────────────
   useEffect(() => {
-    fetchQuestions(config)
-      .then((qs) => { setQuestions(qs); setLoading(false); })
-      .catch((err) => { setError(err.message); setLoading(false); });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const load = async () => {
+    try {
+      // create session in DB first
+      const session = await createSession(config.role, config.focus, config.difficulty);
+      setSessionId(session.id); // add sessionId to state
+
+      // get questions from backend
+      const qs = await generateQuestions(config.role, config.focus, config.difficulty);
+      setQuestions(qs);
+      setLoading(false);
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+  load();
+}, []);
 
   // ── Voice input ────────────────────────────────────────────────────────────
  const toggleVoice = () => {
@@ -254,7 +213,7 @@ export default function InterviewSession() {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      navigate("/feedback", { state: { config, questions, answers: updatedAnswers } });
+      navigate("/feedback", { state: { config, questions, answers: updatedAnswers, sessionId } });
     }
   };
 
@@ -266,7 +225,7 @@ export default function InterviewSession() {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      navigate("/feedback", { state: { config, questions, answers: updatedAnswers } });
+      navigate("/feedback", { state: { config, questions, answers: updatedAnswers, sessionId } });
     }
   };
 
