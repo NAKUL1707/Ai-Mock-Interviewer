@@ -31,8 +31,9 @@ export const getSessions = async (req: AuthRequest, res: Response) => {
 export const getSessionById = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId as string;
+    const id = String(req.params.id); // ← fixes the type error
     const session = await prisma.session.findFirst({
-      where: { id: req.params.id, userId },
+      where: { id, userId },
       include: { questions: { include: { feedback: true } } },
     });
     if (!session) return res.status(404).json({ error: "Session not found" });
