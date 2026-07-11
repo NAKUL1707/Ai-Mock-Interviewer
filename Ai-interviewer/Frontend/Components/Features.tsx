@@ -5,7 +5,7 @@ export default function Features() {
       {/*
           SECTION 1 — Features Grid
        */}
-      <section style={{ backgroundColor: "#f8f9fb", padding: "72px 0 80px" }}>
+      <section id="features" style={{ backgroundColor: "#f8f9fb", padding: "72px 0 80px" }}>
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
 
           {/* Section header */}

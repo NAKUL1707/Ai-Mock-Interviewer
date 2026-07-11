@@ -27,10 +27,10 @@ export default function Navbar() {
 
           {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-8">
-            {["Features", "Pricing", "About"].map((item) => (
+            {['Features', 'About'].map((item) => (
               <a
                 key={item}
-                href="#"
+                href={`/#${item.toLowerCase()}`}
                 style={{ color: "#6b7280", fontSize: "13px", textDecoration: "none" }}
                 className="hover:text-gray-900 transition-colors"
               >
@@ -82,13 +82,23 @@ export default function Navbar() {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="md:hidden py-4 flex flex-col gap-4 border-t border-gray-100">
-            {["Features", "Pricing", "About"].map((item) => (
-              <button key={item} onClick={() => navigate(`/` + item.toLowerCase())} style={{ color: "#6b7280", fontSize: "13px" }}>
+            {["Features", "About"].map((item) => (
+              <button
+                key={item}
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate(`/#${item.toLowerCase()}`);
+                }}
+                style={{ color: "#6b7280", fontSize: "13px" }}
+              >
                 {item}
               </button>
             ))}
             <button
-              onClick={() => navigate("/Login")}
+              onClick={() => {
+                setMenuOpen(false);
+                navigate("/Login");
+              }}
               style={{ color: "#6b7280", fontSize: "13px" }}
             >
               Login

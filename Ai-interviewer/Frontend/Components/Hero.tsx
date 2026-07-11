@@ -1,7 +1,19 @@
 
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Features from "./Features";
 
 export default function Hero() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const target = document.getElementById(location.hash.slice(1));
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [location.hash]);
+
   return (
     <>
       {/* Inject responsive rule once */}
@@ -152,6 +164,47 @@ export default function Hero() {
         </div>
       </section>
       <Features/>
+      <section id="about" style={{ backgroundColor: "#ffffff", padding: "72px 0 80px" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-8">
+          <div style={{ textAlign: "center", marginBottom: "44px" }}>
+            <h2
+              style={{
+                fontSize: "clamp(26px, 4vw, 36px)",
+                fontWeight: 700,
+                color: "#111827",
+                letterSpacing: "-0.02em",
+                lineHeight: 1.2,
+                marginBottom: "16px",
+              }}
+            >
+              About MockCoach AI
+            </h2>
+            <p style={{ fontSize: "14px", color: "#6b7280", lineHeight: 1.65, maxWidth: "520px", margin: "0 auto" }}>
+              MockCoach AI helps you prepare for real interviews with AI-driven practice, instant feedback,
+              and tailored question sets. Our mission is to make interview prep faster, smarter, and more confident.
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", alignItems: "start" }}>
+            <div style={{ backgroundColor: "#f8fafc", borderRadius: "18px", padding: "28px", border: "1px solid #e2e8f0" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>
+                Why it works
+              </h3>
+              <p style={{ fontSize: "14px", color: "#4b5563", lineHeight: 1.7 }}>
+                Realistic practice questions, immediate feedback, and role-specific coaching help you improve faster
+                than traditional prep methods.
+              </p>
+            </div>
+            <div style={{ backgroundColor: "#f8fafc", borderRadius: "18px", padding: "28px", border: "1px solid #e2e8f0" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>
+                Built for busy candidates
+              </h3>
+              <p style={{ fontSize: "14px", color: "#4b5563", lineHeight: 1.7 }}>
+                Practice anytime, get on-demand feedback, and review your performance in a focused, modern interface.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
