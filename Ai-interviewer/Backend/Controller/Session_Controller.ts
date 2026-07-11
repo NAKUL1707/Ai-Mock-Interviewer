@@ -6,7 +6,7 @@ export const createSession = async (req: AuthRequest, res: Response) => {
   try {
     const { role, focus, difficulty } = req.body;
     const session = await prisma.session.create({
-      data: { userId: req.userId!, role, focus, difficulty },
+      data: { userId: req.userId as string, role, focus, difficulty },
     });
     res.status(201).json({ session });
   } catch (err) {
@@ -16,8 +16,9 @@ export const createSession = async (req: AuthRequest, res: Response) => {
 
 export const getSessions = async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.userId as string;
     const sessions = await prisma.session.findMany({
-      where: { userId: req.userId! },
+      where: { userId },
       orderBy: { createdAt: "desc" },
       include: { questions: { include: { feedback: true } } },
     });
@@ -29,8 +30,9 @@ export const getSessions = async (req: AuthRequest, res: Response) => {
 
 export const getSessionById = async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.userId as string;
     const session = await prisma.session.findFirst({
-      where: { id: req.params.id, userId: req.userId! as string },
+      where: { id: req.params.id, userId },
       include: { questions: { include: { feedback: true } } },
     });
     if (!session) return res.status(404).json({ error: "Session not found" });
