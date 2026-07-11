@@ -15,7 +15,7 @@ const app = express();
 
 app.use(cors({ origin: [
     "http://localhost:5173",
-    "https://your-vercel-url.vercel.app"
+    "https://ai-mock-interviewer-eta-wheat.vercel.app/"
 ]
  }));
 app.use(express.json());
