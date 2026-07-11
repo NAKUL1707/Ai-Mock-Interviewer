@@ -6,7 +6,6 @@ import { AuthRequest } from "../Middlewares/Auth_Middleware";
 export const generateQuestions = async (req: AuthRequest, res: Response) => {
   try {
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    console.log("Body:", req.body); // ← add this
     const { role, focus, difficulty } = req.body;
 
     if (!role || !focus || !difficulty) {

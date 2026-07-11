@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
-console.log("ENV CHECK:", process.env.GROQ_API_KEY);
 import express from "express";
 import cors from "cors";
 import AuthRoutes from "./Routes/Auth_Routes";
@@ -9,10 +8,7 @@ import SessionRoutes from "./Routes/Session_Routes";
 import QuestionRoutes from "./Routes/Question_Routes";
 import FeedbackRoutes from "./Routes/Feedback_Routes";
 
-
-
 const app = express();
-
 app.use(cors({ origin: [
 
     "http://localhost:5173",
