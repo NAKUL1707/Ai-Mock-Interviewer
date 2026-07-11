@@ -6,7 +6,6 @@ import { AuthRequest } from "../Middlewares/Auth_Middleware";
 export const generateQuestions = async (req: AuthRequest, res: Response) => {
   try {
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
-     console.log("API KEY:", process.env.GROQ_API_KEY); // ← add this
     console.log("Body:", req.body); // ← add this
     const { role, focus, difficulty } = req.body;
 
@@ -64,6 +63,7 @@ Example:
 
     res.json({ questions });
   } catch (err) {
+    console.error("GenerateQuestions error:", err);
     res.status(500).json({ error: "Failed to generate questions" });
   }
 };
