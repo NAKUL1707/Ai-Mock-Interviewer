@@ -2,10 +2,10 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Features from "./Features";
-
+import { useNavigate } from "react-router-dom";
 export default function Hero() {
   const location = useLocation();
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (!location.hash) return;
     const target = document.getElementById(location.hash.slice(1));
@@ -72,12 +72,12 @@ export default function Hero() {
 
             {/* CTAs */}
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px", flexWrap: "wrap" as const }}>
-              <a
-                href="#"
+              <button
+                onClick={() => navigate("/signup")}
                 style={{ backgroundColor: "#2563eb", color: "#ffffff", fontSize: "14px", fontWeight: 600, padding: "10px 22px", borderRadius: "7px", textDecoration: "none", display: "inline-block" }}
               >
                 Start for Free
-              </a>
+              </button>
               <a
                 href="#"
                 style={{ display: "inline-flex", alignItems: "center", gap: "7px", border: "1.5px solid #e5e7eb", color: "#374151", fontSize: "14px", fontWeight: 600, padding: "10px 22px", borderRadius: "7px", textDecoration: "none", backgroundColor: "#ffffff" }}
