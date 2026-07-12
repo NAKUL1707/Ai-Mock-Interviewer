@@ -8,6 +8,7 @@ import InterviewSession from "../Pages/InterviewSession";
 import FeedbackPage from "../Pages/FeedbackPage";
 import QuestionFeedback from "../Pages/QuestionFeedback";
 import ProtectedRoute from "./Proteted_Routes";
+import AuthCallback from "../Pages/AuthCallback";
 export default function AppRoutes() {
   return (
     <>
@@ -31,6 +32,7 @@ export default function AppRoutes() {
   } />
 
   {/* Public routes */}
+  <Route path="/auth/callback" element={<AuthCallback />} />
   <Route path="/login" element={<Login />} />
   <Route path="/signup" element={<Signup />} />
 </Routes>

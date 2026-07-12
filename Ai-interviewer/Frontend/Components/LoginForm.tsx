@@ -80,7 +80,7 @@ export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
         {/* Google */}
         <button
           type="button"
-          onClick={() => console.log("Google OAuth — wire up here")}
+          onClick={() => window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`}
           style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", border: "1.5px solid #d1d5db", borderRadius: "7px", backgroundColor: "#ffffff", padding: "10px 14px", cursor: "pointer", fontSize: "13px", fontWeight: 600, color: "#374151" }}
         >
           <svg width="16" height="16" viewBox="0 0 48 48">

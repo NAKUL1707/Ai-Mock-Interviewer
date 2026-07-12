@@ -90,7 +90,7 @@ export default function SignupForm({ onSuccess, onError }: SignupFormProps) {
         {/* Google */}
         <button
           type="button"
-          onClick={() => console.log("Google OAuth — wire up here")}
+          onClick={() => window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`}
           style={{
             flex: 1,
             display: "flex",

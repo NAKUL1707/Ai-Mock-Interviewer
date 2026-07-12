@@ -7,6 +7,7 @@ import AuthRoutes from "./Routes/Auth_Routes";
 import SessionRoutes from "./Routes/Session_Routes";
 import QuestionRoutes from "./Routes/Question_Routes";
 import FeedbackRoutes from "./Routes/Feedback_Routes";
+import passport from "./Config/Passport";
 
 const app = express();
 app.use(cors({ origin: [
@@ -17,6 +18,7 @@ app.use(cors({ origin: [
     credentials: true
  }));
 app.use(express.json());
+app.use(passport.initialize());
 
 app.use("/api/auth", AuthRoutes);
 app.use("/api/sessions", SessionRoutes);
