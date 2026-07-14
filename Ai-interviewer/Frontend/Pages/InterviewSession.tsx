@@ -205,6 +205,12 @@ export default function InterviewSession() {
   // ── Submit / Skip ──────────────────────────────────────────────────────────
   const handleSubmit = () => {
     if (!answer.trim()) return;
+    
+    if (isListening) {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }
+
 
     const updatedAnswers = [...answers, answer.trim()];
     setAnswers(updatedAnswers);
@@ -218,6 +224,11 @@ export default function InterviewSession() {
   };
 
   const handleSkip = () => {
+
+    if (isListening) {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }
     const updatedAnswers = [...answers, ""];
     setAnswers(updatedAnswers);
     setAnswer("");
