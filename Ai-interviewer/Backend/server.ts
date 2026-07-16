@@ -25,6 +25,8 @@ app.use("/api/sessions", SessionRoutes);
 app.use("/api/questions", QuestionRoutes);
 app.use("/api/feedback", FeedbackRoutes);
 
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
 app.get("/", (req, res) => res.json({ message: "MockCoach API running" }));
 
 const PORT = process.env.PORT || 5000;
