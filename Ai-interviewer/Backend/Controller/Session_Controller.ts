@@ -4,12 +4,19 @@ import { AuthRequest } from "../Middlewares/Auth_Middleware";
 
 export const createSession = async (req: AuthRequest, res: Response) => {
   try {
-    const { role, focus, difficulty } = req.body;
+    const { role, language, focus, difficulty } = req.body;
+
+    // Same rule as question generation: at least one of role/language required.
+    if (!role && !language) {
+      return res.status(400).json({ error: "role or language (at least one) is required" });
+    }
+
     const session = await prisma.session.create({
-      data: { userId: req.userId as string, role, focus, difficulty },
+      data: { userId: req.userId as string, role, language, focus, difficulty },
     });
     res.status(201).json({ session });
   } catch (err) {
+    console.error("createSession error:", err);
     res.status(500).json({ error: "Failed to create session" });
   }
 };

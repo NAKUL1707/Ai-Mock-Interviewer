@@ -52,11 +52,19 @@ export const getUser = () => {
 export const isLoggedIn = () => !!getToken();
 
 // ── Questions ──────────────────────────────────────────────────────────────
-export const generateQuestions = async (role: string, focus: string, difficulty: string) => {
+// role and language are both optional now — Dashboard guarantees at least
+// one is set before this is ever called, but the signature stays permissive
+// so this function doesn't have to know that rule itself.
+export const generateQuestions = async (
+  role: string | undefined,
+  language: string | undefined,
+  focus: string,
+  difficulty: string
+) => {
   const res = await fetch(`${BASE_URL}/questions/generate`, {
     method: "POST",
     headers: headers(),
-    body: JSON.stringify({ role, focus, difficulty }),
+    body: JSON.stringify({ role, language, focus, difficulty }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error);
@@ -64,11 +72,16 @@ export const generateQuestions = async (role: string, focus: string, difficulty:
 };
 
 // ── Sessions ───────────────────────────────────────────────────────────────
-export const createSession = async (role: string, focus: string, difficulty: string) => {
+export const createSession = async (
+  role: string | undefined,
+  language: string | undefined,
+  focus: string,
+  difficulty: string
+) => {
   const res = await fetch(`${BASE_URL}/sessions`, {
     method: "POST",
     headers: headers(),
-    body: JSON.stringify({ role, focus, difficulty }),
+    body: JSON.stringify({ role, language, focus, difficulty }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error);
@@ -99,7 +112,7 @@ export const getSessionById = async (id: string) => {
 export const scoreFeedback = async (
   questions: any[],
   answers: string[],
-  config: { role: string; focus: string; difficulty: string },
+  config: { role?: string; language?: string; focus: string; difficulty: string },
   sessionId?: string
 ) => {
   const res = await fetch(`${BASE_URL}/feedback/score`, {
@@ -115,7 +128,7 @@ export const scoreFeedback = async (
 export const getDetailedFeedback = async (
   question: any,
   answer: string,
-  config: { role: string; focus: string; difficulty: string }
+  config: { role?: string; language?: string; focus: string; difficulty: string }
 ) => {
   const res = await fetch(`${BASE_URL}/feedback/detail`, {
     method: "POST",

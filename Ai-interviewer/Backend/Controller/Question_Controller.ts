@@ -6,10 +6,12 @@ import { AuthRequest } from "../Middlewares/Auth_Middleware";
 export const generateQuestions = async (req: AuthRequest, res: Response) => {
   try {
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    const { role, focus, difficulty } = req.body;
+    const { role, language, focus, difficulty } = req.body;
 
-    if (!role || !focus || !difficulty) {
-      return res.status(400).json({ error: "role, focus and difficulty are required" });
+    // role and language are each optional, but at least one must be present —
+    // otherwise we have nothing to base questions on. focus/difficulty stay required.
+    if ((!role && !language) || !focus || !difficulty) {
+      return res.status(400).json({ error: "role or language (at least one), plus focus and difficulty, are required" });
     }
 
     const focusLabel =
@@ -20,7 +22,18 @@ export const generateQuestions = async (req: AuthRequest, res: Response) => {
 
     const count = focus === "quick" ? 5 : 8;
 
-    const prompt = `You are an expert interview coach. Generate exactly ${count} interview questions for a ${difficulty} level ${role} candidate. Focus: ${focusLabel}.
+    // Build the "who/what this interview is about" phrase depending on which
+    // of role/language are present.
+    let subjectLabel: string;
+    if (role && language) {
+      subjectLabel = `a ${difficulty} level ${role} candidate, with interview questions specifically testing their ${language} knowledge`;
+    } else if (role) {
+      subjectLabel = `a ${difficulty} level ${role} candidate`;
+    } else {
+      subjectLabel = `a ${difficulty} level candidate being tested specifically on ${language} knowledge`;
+    }
+
+    const prompt = `You are an expert interview coach. Generate exactly ${count} interview questions for ${subjectLabel}. Focus: ${focusLabel}.
 
 Return ONLY a valid JSON array, no markdown, no explanation. Each item must have exactly these fields:
 - "question": the interview question (string)

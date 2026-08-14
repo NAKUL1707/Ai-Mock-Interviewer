@@ -20,12 +20,13 @@ model Session {
   id         String     @id @default(uuid())
   userId     String
   user       User       @relation(fields: [userId], references: [id])
-  role       String
+  role       String?
   focus      String
   difficulty String
   avgScore   Float?
   createdAt  DateTime   @default(now())
   questions  Question[]
+  language   String?
 }
 
 model Question {

@@ -14,7 +14,8 @@ interface Question {
 }
 
 interface SessionConfig {
-  role: string;
+  role?: string;
+  language?: string;
   focus: string;
   difficulty: string;
 }
@@ -114,8 +115,14 @@ export default function InterviewSession() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const config: SessionConfig = (location.state as SessionConfig) ?? {
+  // Role AND language are both optional now — Dashboard guarantees at least
+  // one of them is set before navigating here, so we don't force a fallback
+  // role. If somehow neither is present (e.g. direct URL nav), we still fall
+  // back so the session doesn't crash.
+  const rawConfig = location.state as SessionConfig | undefined;
+  const config: SessionConfig = rawConfig ?? {
     role: "Full Stack Developer",
+    language: undefined,
     focus: "both",
     difficulty: "Intermediate",
   };
@@ -136,12 +143,13 @@ export default function InterviewSession() {
   useEffect(() => {
   const load = async () => {
     try {
-      // create session in DB first
-      const session = await createSession(config.role, config.focus, config.difficulty);
+      // create session in DB first — role/language are passed through as-is
+      // (either can be undefined; api.ts + backend need to accept that)
+      const session = await createSession(config.role, config.language, config.focus, config.difficulty);
       setSessionId(session.id); // add sessionId to state
 
       // get questions from backend
-      const qs = await generateQuestions(config.role, config.focus, config.difficulty);
+      const qs = await generateQuestions(config.role, config.language, config.focus, config.difficulty);
       setQuestions(qs);
       setLoading(false);
     } catch (err: any) {
@@ -245,11 +253,14 @@ export default function InterviewSession() {
   const progressPct = total > 0 ? (currentIndex / total) * 100 : 0;
   const currentQ = questions[currentIndex];
 
+  // Label shown in the navbar — combines role + language, whichever are set
+  const sessionLabel = [config.role, config.language].filter(Boolean).join(" · ") || "Interview";
+
   // ── Render: Loading ────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "#f3f4f6", display: "flex", flexDirection: "column" }}>
-        <SessionNavbar role={config.role} current={0} total={0} progress={0} />
+        <SessionNavbar label={sessionLabel} current={0} total={0} progress={0} />
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "16px" }}>
           <div style={{ width: "40px", height: "40px", border: "3px solid #e5e7eb", borderTop: "3px solid #2563eb", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -281,7 +292,7 @@ export default function InterviewSession() {
   return (
     <div style={{ minHeight: "100vh", background: "#f3f4f6", display: "flex", flexDirection: "column", fontFamily: "'Inter','Segoe UI',sans-serif" }}>
 
-      <SessionNavbar role={config.role} current={currentIndex + 1} total={total} progress={progressPct} />
+      <SessionNavbar label={sessionLabel} current={currentIndex + 1} total={total} progress={progressPct} />
 
       <main style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "60px 16px 100px" }}>
 
@@ -392,8 +403,8 @@ export default function InterviewSession() {
 }
 
 // ── Session Navbar ─────────────────────────────────────────────────────────
-function SessionNavbar({ role, current, total, progress }: {
-  role: string;
+function SessionNavbar({ label, current, total, progress }: {
+  label: string;
   current: number;
   total: number;
   progress: number;
@@ -405,7 +416,7 @@ function SessionNavbar({ role, current, total, progress }: {
       borderBottom: "1px solid #e5e7eb", position: "sticky", top: 0, zIndex: 100,
     }}>
       <span style={{ fontWeight: 700, fontSize: "15px", color: "#111827" }}>
-        {role || "Interview"}
+        {label}
       </span>
 
       {total > 0 && (

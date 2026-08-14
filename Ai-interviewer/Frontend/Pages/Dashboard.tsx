@@ -2,7 +2,7 @@
 // Place this in: Pages/Dashboard.tsx
 //
 // On "Start Interview" click, navigates to /interview passing
-// { role, focus, difficulty } via React Router state.
+// { role, language, focus, difficulty } via React Router state.
 // InterviewSession.tsx reads this with useLocation().state
 
 import { useState } from "react";
@@ -30,7 +30,33 @@ const roles = [
   "Blockchain Developer",
 ];
 
-
+const languages = [
+  "JavaScript",
+  "TypeScript",
+  "Python",
+  "Java",
+  "C++",
+  "Go",
+  "Rust",
+  "Swift",
+  "Kotlin",
+  "PHP",
+  "Ruby",
+  "Scala",
+  "R",
+  "React",
+  "Angular",
+  "Vue.js",
+  "Node.js",
+  "Django",
+  "Flask",
+  "Express.js",
+  "Spring Boot",
+  "Laravel",
+  "SQL",
+  "NoSQL",
+  "GraphQL",
+];
 
 const ArrowRightIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -94,21 +120,26 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [targetRole, setTargetRole] = useState("");
+  const [targetLanguage, setTargetLanguage] = useState("");
   const [focus, setFocus] = useState<FocusOption>("both");
   const [difficulty, setDifficulty] = useState<Difficulty>("Intermediate");
   const [customRole, setCustomRole] = useState("");
   const [showCustom, setShowCustom] = useState(false);
 
   const handleStartInterview = () => {
-    const role = targetRole.trim() || "Full Stack Developer"; // fallback to placeholder value
-    if(!targetRole.trim()) {
-      setError("Please enter your target role.");
+    const role = targetRole.trim();
+    const language = targetLanguage.trim();
+
+    // Require at least one of role or language — both is fine, either alone is fine.
+    if (!role && !language) {
+      setError("Please select a target role, a language, or both.");
       return;
     }
     setError("");
     navigate("/interview", {
       state: {
-        role,
+        role: role || undefined,
+        language: language || undefined,
         focus,
         difficulty,
       },
@@ -129,7 +160,7 @@ export default function Dashboard() {
             Start Your Practice
           </h1>
           <p style={{ fontSize: "14px", color: "#6b7280", margin: "0 0 32px" }}>
-            Configure your personalized AI interview experience.
+            Configure your personalized AI interview experience. Pick a role, a language, or both.
           </p>
 
           {/* Target role */}
@@ -138,7 +169,7 @@ export default function Dashboard() {
     display: "block", fontSize: "11px", fontWeight: 600,
     letterSpacing: "0.08em", color: "#6b7280", marginBottom: "10px"
   }}>
-    YOUR TARGET ROLE
+    YOUR TARGET ROLE <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: "normal" }}>(optional)</span>
   </label>
 
   {/* Dropdown */}
@@ -156,7 +187,7 @@ export default function Dashboard() {
     }}
     style={{
       width: "100%", padding: "12px 16px", fontSize: "14px",
-      border: `1px solid ${error && !targetRole ? "#dc2626" : "#d1d5db"}`,
+      border: `1px solid ${error && !targetRole && !targetLanguage ? "#dc2626" : "#d1d5db"}`,
       borderRadius: "8px", color: targetRole ? "#111827" : "#9ca3af",
       outline: "none", boxSizing: "border-box", background: "#fff",
       cursor: "pointer", appearance: "none",
@@ -165,10 +196,11 @@ export default function Dashboard() {
       backgroundPosition: "right 14px center",
     }}
   >
-    <option value="" disabled>Select a role...</option>
+    <option value="">No specific role</option>
     {roles.map((role) => (
       <option key={role} value={role}>{role}</option>
     ))}
+    <option value="Other (type your own)">Other (type your own)</option>
   </select>
 
   {/* Custom input — only shows when "Other" is selected */}
@@ -184,7 +216,7 @@ export default function Dashboard() {
       }}
       style={{
         width: "100%", padding: "12px 16px", fontSize: "14px",
-        border: `1px solid ${error && !targetRole ? "#dc2626" : "#d1d5db"}`,
+        border: `1px solid ${error && !targetRole && !targetLanguage ? "#dc2626" : "#d1d5db"}`,
         borderRadius: "8px", color: "#111827", outline: "none",
         boxSizing: "border-box", background: "#fff", marginTop: "10px",
       }}
@@ -193,13 +225,46 @@ export default function Dashboard() {
       autoFocus
     />
   )}
-
-  {error && (
-    <p style={{ color: "#dc2626", fontSize: "12px", marginTop: "6px" }}>
-      {error}
-    </p>
-  )}
 </section>
+
+          {/* Target language */}
+          <section style={{ marginBottom: "28px" }}>
+            <label style={{
+              display: "block", fontSize: "11px", fontWeight: 600,
+              letterSpacing: "0.08em", color: "#6b7280", marginBottom: "10px"
+            }}>
+              INTERVIEW LANGUAGE <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: "normal" }}>(optional)</span>
+            </label>
+
+            <select
+              value={targetLanguage}
+              onChange={(e) => {
+                setTargetLanguage(e.target.value);
+                if (error) setError("");
+              }}
+              style={{
+                width: "100%", padding: "12px 16px", fontSize: "14px",
+                border: `1px solid ${error && !targetRole && !targetLanguage ? "#dc2626" : "#d1d5db"}`,
+                borderRadius: "8px", color: targetLanguage ? "#111827" : "#9ca3af",
+                outline: "none", boxSizing: "border-box", background: "#fff",
+                cursor: "pointer", appearance: "none",
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 14px center",
+              }}
+            >
+              <option value="">No specific language</option>
+              {languages.map((lang) => (
+                <option key={lang} value={lang}>{lang}</option>
+              ))}
+            </select>
+
+            {error && (
+              <p style={{ color: "#dc2626", fontSize: "12px", marginTop: "6px" }}>
+                {error}
+              </p>
+            )}
+          </section>
 
           {/* Interview focus */}
           <section style={{ marginBottom: "28px" }}>
