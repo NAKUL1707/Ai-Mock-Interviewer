@@ -10,7 +10,7 @@ An AI-powered mock interview platform that helps candidates practice technical a
 ## ✨ Features
 
 - 🎙️ **Voice-based interview practice** using the Web Speech API for real-time speech recognition
-- 🤖 **AI-generated interview questions & feedback** powered by Groq's `llama-3.3-70b-versatile` model
+- 🤖 **AI-generated interview questions & feedback** powered by Groq's `GPT-OSS 12B` model
 - 🔐 **Secure authentication** via Google OAuth (Passport.js)
 - 📊 **Structured feedback** on answers to help identify strengths and areas of improvement
 - ⚡ **Fast, modern UI** built with React 19 and Tailwind CSS v4
