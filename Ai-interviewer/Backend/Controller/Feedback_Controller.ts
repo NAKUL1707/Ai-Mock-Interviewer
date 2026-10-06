@@ -36,7 +36,7 @@ Example: [{"score":8.5,"improvement":"Use the STAR method more strictly.","ideal
         "Authorization": `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama3-70b-8192",
         max_tokens: 1500,
         temperature: 0.3,
         messages: [
@@ -120,7 +120,7 @@ Return ONLY valid JSON with exactly these fields:
         "Authorization": `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama3-70b-8192",
         max_tokens: 1000,
         temperature: 0.3,
         messages: [
