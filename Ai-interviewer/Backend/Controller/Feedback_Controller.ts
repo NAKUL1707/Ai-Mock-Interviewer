@@ -111,6 +111,7 @@ Return ONLY valid JSON with exactly these fields:
   "whatWorked": [<2-3 specific things done well, each max 20 words>],
   "improveThis": [<1-2 specific improvements, each max 20 words>],
   "idealAnswer": <one paragraph model answer, 80-120 words, in first person>
+  
 }`;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
